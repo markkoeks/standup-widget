@@ -1,0 +1,144 @@
+
+<div style="max-width: 540px; margin: 0 auto; padding: 1rem 0;">
+  <div style="text-align: center; margin-bottom: 1.5rem;">
+    <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px;">The vibe check roulette</div>
+    <div style="font-size: 13px; color: var(--color-text-secondary);">Spin to reveal your standup check-in prompt. No coward answers allowed.</div>
+  </div>
+
+  <div id="prompt-card" style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; text-align: center; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: border-color 0.3s;">
+    <div id="emoji-display" style="font-size: 48px; margin-bottom: 12px; line-height: 1;">&#127922;</div>
+    <div id="category-label" style="font-size: 12px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 8px;">Ready to spin</div>
+    <div id="prompt-text" style="font-size: 16px; font-weight: 500; color: var(--color-text-primary); line-height: 1.5; max-width: 400px;">Hit the button below and share your answer with the team</div>
+  </div>
+
+  <div style="display: flex; gap: 8px; margin-top: 1rem;">
+    <button onclick="spin()" id="spin-btn" style="flex: 1; padding: 10px 16px; font-size: 14px;">Spin the wheel</button>
+    <button onclick="spinHigh()" style="padding: 10px 16px; font-size: 13px;">Just highs</button>
+    <button onclick="spinLow()" style="padding: 10px 16px; font-size: 13px;">Just lows</button>
+  </div>
+
+  <div id="history" style="margin-top: 1.5rem;"></div>
+</div>
+
+<script>
+const highs = [
+  { emoji: "&#127942;", prompt: "What's your tiny victory this week that nobody else noticed but you're secretly smug about?" },
+  { emoji: "&#9889;", prompt: "If your energy level right now was a kitchen appliance, which one and why?" },
+  { emoji: "&#127908;", prompt: "Drop your current walk-up song. The one playing in your head as you opened your laptop today." },
+  { emoji: "&#128640;", prompt: "What's one thing you're irrationally excited about right now? Work or otherwise. No judgment zone." },
+  { emoji: "&#127829;", prompt: "Best thing you ate in the last 48 hours. Describe it like a food critic with zero chill." },
+  { emoji: "&#129504;", prompt: "What's something you learned recently that made you go 'wait, WHAT?'" },
+  { emoji: "&#127911;", prompt: "You just won a 3-day weekend. No responsibilities. What's the FIRST thing you do?" },
+  { emoji: "&#128171;", prompt: "Describe your current momentum using only a weather forecast." },
+  { emoji: "&#127775;", prompt: "Give yourself a compliment you'd never say out loud. We'll wait." },
+  { emoji: "&#129412;", prompt: "What's your spirit animal today and what is it doing right now?" },
+  { emoji: "&#127881;", prompt: "What's one thing going surprisingly well that you haven't told anyone about yet?" },
+  { emoji: "&#128293;", prompt: "Hot take: what's an unpopular opinion you hold about how we work?" },
+];
+
+const lows = [
+  { emoji: "&#128553;", prompt: "What's your pebble in the shoe right now? That small annoying thing that won't go away." },
+  { emoji: "&#129344;", prompt: "If your biggest frustration this week was a warning label, what would it say?" },
+  { emoji: "&#128248;", prompt: "Describe your current stress level as a nature documentary scene narrated by David Attenborough." },
+  { emoji: "&#128123;", prompt: "What task is haunting you like a ghost you keep pretending isn't there?" },
+  { emoji: "&#9749;", prompt: "On a scale of 'zen monk' to 'fifth cup of coffee at 2pm', where are you today?" },
+  { emoji: "&#128683;", prompt: "What's one thing you wish you could put in the bin and never deal with again?" },
+  { emoji: "&#129503;", prompt: "What's the thing on your to-do list that keeps rolling over like a zombie that won't stay down?" },
+  { emoji: "&#127754;", prompt: "If your week so far was a movie genre, what genre and why? No rom-coms unless you mean it." },
+  { emoji: "&#128580;", prompt: "What made you do the biggest eye-roll this week? Keep it spicy but HR-friendly." },
+  { emoji: "&#129700;", prompt: "What's one thing that would make today 40% less chaotic?" },
+  { emoji: "&#128556;", prompt: "Describe your week using only the title of a reality TV show." },
+  { emoji: "&#127785;", prompt: "What's draining your battery the most right now? Be honest, no corporate-speak." },
+];
+
+let lastHighIdx = -1;
+let lastLowIdx = -1;
+let historyItems = [];
+
+function pickRandom(arr, lastIdx) {
+  let idx;
+  do { idx = Math.floor(Math.random() * arr.length); } while (idx === lastIdx && arr.length > 1);
+  return idx;
+}
+
+function animateSpin(callback) {
+  const card = document.getElementById('prompt-card');
+  const emojiEl = document.getElementById('emoji-display');
+  const catEl = document.getElementById('category-label');
+  const textEl = document.getElementById('prompt-text');
+  const btn = document.getElementById('spin-btn');
+  btn.disabled = true;
+
+  const allEmojis = [...highs, ...lows].map(h => h.emoji);
+  let count = 0;
+  const interval = setInterval(() => {
+    emojiEl.innerHTML = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+    catEl.textContent = count % 2 === 0 ? "Shuffling..." : "Almost...";
+    textEl.style.opacity = "0.3";
+    count++;
+    if (count > 8) {
+      clearInterval(interval);
+      btn.disabled = false;
+      textEl.style.opacity = "1";
+      callback();
+    }
+  }, 100);
+}
+
+function displayResult(item, type) {
+  const emojiEl = document.getElementById('emoji-display');
+  const catEl = document.getElementById('category-label');
+  const textEl = document.getElementById('prompt-text');
+  const card = document.getElementById('prompt-card');
+
+  emojiEl.innerHTML = item.emoji;
+  catEl.textContent = type === 'high' ? "High — the good stuff" : "Low — keep it real";
+  catEl.style.color = type === 'high' ? 'var(--color-text-success)' : 'var(--color-text-warning)';
+  textEl.textContent = item.prompt;
+  card.style.borderColor = type === 'high' ? 'var(--color-border-success)' : 'var(--color-border-warning)';
+
+  historyItems.unshift({ emoji: item.emoji, type, short: item.prompt.slice(0, 50) + '...' });
+  if (historyItems.length > 5) historyItems = historyItems.slice(0, 5);
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('history');
+  if (historyItems.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Previous spins</div>' +
+    historyItems.map(h =>
+      `<div style="font-size: 13px; color: var(--color-text-secondary); padding: 4px 0; display: flex; align-items: center; gap: 8px;">
+        <span>${h.emoji}</span>
+        <span style="color: ${h.type === 'high' ? 'var(--color-text-success)' : 'var(--color-text-warning)'}; font-size: 11px; text-transform: uppercase; min-width: 32px;">${h.type}</span>
+        <span>${h.short}</span>
+      </div>`
+    ).join('');
+}
+
+function spin() {
+  animateSpin(() => {
+    const isHigh = Math.random() > 0.5;
+    if (isHigh) {
+      lastHighIdx = pickRandom(highs, lastHighIdx);
+      displayResult(highs[lastHighIdx], 'high');
+    } else {
+      lastLowIdx = pickRandom(lows, lastLowIdx);
+      displayResult(lows[lastLowIdx], 'low');
+    }
+  });
+}
+
+function spinHigh() {
+  animateSpin(() => {
+    lastHighIdx = pickRandom(highs, lastHighIdx);
+    displayResult(highs[lastHighIdx], 'high');
+  });
+}
+
+function spinLow() {
+  animateSpin(() => {
+    lastLowIdx = pickRandom(lows, lastLowIdx);
+    displayResult(lows[lastLowIdx], 'low');
+  });
+}
+</script>
